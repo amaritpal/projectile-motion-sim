@@ -8,194 +8,190 @@ import javafx.stage.Stage;
 public class Simulation {
 
     private Stage primaryStage;
-    private double gravity = 9.81; // Default gravity (Earth)
-    private boolean isRunning = false;
-    private boolean isPaused = false;
+    private boolean isRunning = false; // To track the simulation state
+
     public Simulation(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
 
     public Scene createSimulationScene() {
-        // Viewing Box
-        Label viewingBoxLabel = new Label("Viewing Box");
-        viewingBoxLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white; -fx-padding: 10px; -fx-border-color: white; -fx-border-width: 2px;");
-        VBox viewingBox = new VBox(viewingBoxLabel);
-        viewingBox.setStyle("-fx-background-color: #2c3e50;");
-        viewingBox.setPrefSize(800, 400); // Adjust size based on mock-up
+        // Visualiser
+        Label visualiserLabel = new Label("Visualiser / Graph");
+        visualiserLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: white;");
+        VBox visualiserBox = new VBox(visualiserLabel);
+        visualiserBox.setStyle("-fx-background-color: #2c3e50; -fx-border-color: white; -fx-border-width: 2px;");
+        visualiserBox.setPrefSize(800, 400);
 
-        // Variable Adjuster (Sliders)
-        Slider angleSlider = new Slider(0, 90, 45); // Angle range: 0° to 90°
-        Label angleLabel = new Label("Angle: 45°");
-        angleLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
-        angleSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            angleLabel.setText("Angle: " + newVal.intValue() + "°");
+        // Input Values
+        Slider velocitySlider = createSlider(0, 100, 50, "Velocity");
+        TextField velocityTextField = createTextField("50");
+        velocitySlider.valueProperty().addListener((obs, oldValue, newValue) -> {
+            velocityTextField.setText(String.valueOf(newValue.intValue()));
         });
 
-        Slider massSlider = new Slider(0.1, 10, 1); // Mass range: 0.1kg to 10kg
-        Label massLabel = new Label("Mass: 1.0 kg");
-        massLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
-        massSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            massLabel.setText(String.format("Mass: %.1f kg", newVal.doubleValue()));
+        Slider angleSlider = createSlider(0, 90, 45, "Launch Angle");
+        TextField angleTextField = createTextField("45");
+        angleSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
+            angleTextField.setText(String.valueOf(newValue.intValue()));
         });
 
-        Slider velocitySlider = new Slider(0, 100, 50); // Velocity range: 0 m/s to 100 m/s
-        Label velocityLabel = new Label("Velocity: 50.0 m/s");
-        velocityLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
-        velocitySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            velocityLabel.setText(String.format("Velocity: %.1f m/s", newVal.doubleValue()));
+        ComboBox<String> gravityDropdown = new ComboBox<>();
+        gravityDropdown.getItems().addAll("Earth", "Mars", "Moon", "Custom");
+        gravityDropdown.setValue("Earth");
+        TextField customGravityField = createTextField("");
+        customGravityField.setVisible(false);
+
+        gravityDropdown.setOnAction(e -> {
+            customGravityField.setVisible(gravityDropdown.getValue().equals("Custom"));
         });
 
-        VBox variableAdjuster = new VBox(10, angleLabel, angleSlider, massLabel, massSlider, velocityLabel, velocitySlider);
-        variableAdjuster.setStyle("-fx-background-color: #34495e; -fx-padding: 10px;");
-        variableAdjuster.setPrefWidth(300);
+        VBox inputPanel = new VBox(10,
+                createLabeledInput("Initial Velocity", velocitySlider, velocityTextField),
+                createLabeledInput("Launch Angle", angleSlider, angleTextField),
+                createLabeledInput("Gravity (Planet)", gravityDropdown, customGravityField)
+        );
+        inputPanel.setStyle("-fx-background-color: #34495e; -fx-padding: 10px;");
 
-        // Gravity Toggle (Preset) + Custom Gravity Input
-        ToggleButton marsButton = new ToggleButton("Mars");
-        ToggleButton moonButton = new ToggleButton("Moon");
-        ToggleButton earthButton = new ToggleButton("Earth");
-        ToggleButton customButton = new ToggleButton("Custom");
-        earthButton.setSelected(true); // Default selection
+        // Control Buttons
+        Button launchButton = createStyledButton("Launch");
+        Button playButton = createStyledButton("Play");
+        Button pauseButton = createStyledButton("Pause");
 
-        // Custom Gravity Input
-        Label customGravityLabel = new Label("Custom Gravity:");
-        customGravityLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
-        TextField customGravityInput = new TextField();
-        customGravityInput.setPromptText("Enter gravity value...");
-        customGravityInput.setStyle("-fx-font-size: 16px; -fx-padding: 5px;");
-        customGravityInput.setDisable(true); // Disable until Custom is selected
+        // Launch Button Logic
+        launchButton.setOnAction(e -> {
+            if (!isRunning) {
+                isRunning = true;
+                double velocity = velocitySlider.getValue();
+                double angle = angleSlider.getValue();
+                double gravity;
 
-        customGravityInput.textProperty().addListener((obs, oldVal, newVal) -> {
-            try {
-                gravity = Double.parseDouble(newVal);
-            } catch (NumberFormatException e) {
-                gravity = 9.81; // Default to Earth gravity if input is invalid
+                if (gravityDropdown.getValue().equals("Custom")) {
+                    try {
+                        gravity = Double.parseDouble(customGravityField.getText());
+                    } catch (NumberFormatException ex) {
+                        System.out.println("Invalid gravity value. Defaulting to 9.8 m/s²");
+                        gravity = 9.8;
+                    }
+                } else {
+                    gravity = getGravityForPlanet(gravityDropdown.getValue());
+                }
+
+                System.out.println("Simulation started with:");
+                System.out.println("Velocity: " + velocity + " m/s");
+                System.out.println("Angle: " + angle + " degrees");
+                System.out.println("Gravity: " + gravity + " m/s²");
+
+                startSimulation(velocity, angle, gravity);
             }
         });
 
-        // Update gravity when preset buttons are clicked
-        marsButton.setOnAction(e -> updateGravity(3.71, marsButton, moonButton, earthButton, customButton));
-        moonButton.setOnAction(e -> updateGravity(1.62, marsButton, moonButton, earthButton, customButton));
-        earthButton.setOnAction(e -> updateGravity(9.81, marsButton, moonButton, earthButton, customButton));
-        customButton.setOnAction(e -> {
-            if (customButton.isSelected()) {
-                customGravityInput.setDisable(false); // Enable the custom input
-            } else {
-                customGravityInput.setDisable(true); // Disable the custom input
+        // Play Button Logic
+        playButton.setOnAction(e -> {
+            if (!isRunning) {
+                isRunning = true;
+                System.out.println("Simulation resumed.");
+                // Add logic to resume the simulation here
             }
         });
 
-        // Gravity Selector HBox
-        HBox gravitySelector = new HBox(10, marsButton, moonButton, earthButton, customButton);
-        gravitySelector.setStyle("-fx-background-color: #34495e; -fx-padding: 10px;");
-        gravitySelector.setAlignment(javafx.geometry.Pos.CENTER);
+        // Pause Button Logic
+        pauseButton.setOnAction(e -> {
+            if (isRunning) {
+                isRunning = false;
+                System.out.println("Simulation paused.");
+                // Add logic to pause the simulation here
+            }
+        });
 
-        HBox customGravityLayout = new HBox(10, customGravityLabel, customGravityInput);
-        customGravityLayout.setStyle("-fx-background-color: #34495e; -fx-padding: 10px;");
-        customGravityLayout.setAlignment(javafx.geometry.Pos.CENTER);
+        // Control Panel Layout
+        HBox controlPanel = new HBox(10, launchButton, playButton, pauseButton);
+        controlPanel.setAlignment(javafx.geometry.Pos.CENTER);
+        controlPanel.setStyle("-fx-padding: 10px; -fx-background-color: #34495e;");
 
-        // Statistics Panel (Moved to top-right)
-        Label maxHeightLabel = new Label("Max Height: 0.0 m");
-        Label timeLabel = new Label("Time: 0.0 s");
-        Label velocityStatLabel = new Label("Velocity: 0.0 m/s");
-        maxHeightLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
-        timeLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
-        velocityStatLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
+        // Statistics
+        Label heightLabel = createStyledLabel("Height: 0.0 m");
+        Label velocityLabel = createStyledLabel("Velocity: 0.0 m/s");
+        Label timeLabel = createStyledLabel("Time: 0.0 s");
 
-        VBox statisticsPanel = new VBox(10, maxHeightLabel, timeLabel, velocityStatLabel);
+        VBox statisticsPanel = new VBox(10, heightLabel, velocityLabel, timeLabel);
         statisticsPanel.setStyle("-fx-background-color: #34495e; -fx-padding: 10px;");
-        statisticsPanel.setPrefWidth(300);
 
-        // Control Buttons (VBox on the right side for Launch, Pause, and Play)
-        Button launchButton = new Button("Launch");
-        launchButton.setOnAction(e -> startSimulation(angleSlider, massSlider, velocitySlider));
-        ButtonStyling.applyButtonStyles(launchButton);
-
-        Button pauseButton = new Button("Pause");
-        pauseButton.setOnAction(e -> pauseSimulation());
-        ButtonStyling.applyButtonStyles(pauseButton);
-
-        Button playButton = new Button("Play");
-        playButton.setOnAction(e -> resumeSimulation());
-        ButtonStyling.applyButtonStyles(playButton);
-
-        VBox simulationControls = new VBox(10, launchButton, pauseButton, playButton);
-        simulationControls.setStyle("-fx-background-color: #34495e; -fx-padding: 10px;");
-        simulationControls.setAlignment(javafx.geometry.Pos.CENTER);
-
-        // Bottom control buttons (Back and Reset)
-        Button backButton = new Button("Back");
-        backButton.setOnAction(e -> goBackToMainMenu());
-        ButtonStyling.applyButtonStyles(backButton);
-
-        Button resetButton = new Button("Reset");
-        resetButton.setOnAction(e -> resetSimulation(angleSlider, massSlider, velocitySlider));
-        ButtonStyling.applyButtonStyles(resetButton);
-
-        HBox controlButtons = new HBox(10, backButton, resetButton);
-        controlButtons.setAlignment(javafx.geometry.Pos.CENTER);
-
-        // Main Layout
+        // Layout Setup
         BorderPane mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: #2c3e50;");
-        mainLayout.setTop(viewingBox);
-        mainLayout.setLeft(variableAdjuster);
-        mainLayout.setRight(simulationControls); // Place the controls in the right side
-        mainLayout.setCenter(gravitySelector); // Place gravity selector in the center
-        mainLayout.setBottom(controlButtons);
-        mainLayout.setTop(statisticsPanel); // Move statistics to the top-right
-        mainLayout.setBottom(customGravityLayout); // Place custom gravity input at the bottom
+        mainLayout.setTop(statisticsPanel);
+        mainLayout.setLeft(inputPanel);
+        mainLayout.setCenter(visualiserBox);
+
+        VBox bottomLayout = new VBox(10, controlPanel, createBackButton());
+        bottomLayout.setAlignment(javafx.geometry.Pos.CENTER);
+
+        mainLayout.setBottom(bottomLayout);
 
         return new Scene(mainLayout, 1280, 720);
     }
 
-    private void updateGravity(double gravityValue, ToggleButton mars, ToggleButton moon, ToggleButton earth, ToggleButton custom) {
-        gravity = gravityValue;
-        mars.setSelected(gravity == 3.71);
-        moon.setSelected(gravity == 1.62);
-        earth.setSelected(gravity == 9.81);
-        custom.setSelected(false); // Deselect Custom
-
-        System.out.println("Gravity set to " + gravity);
-        // Logic to update gravity in the simulation
+    // Helper Methods
+    private Slider createSlider(double min, double max, double value, String label) {
+        Slider slider = new Slider(min, max, value);
+        slider.setStyle("-fx-accent: #2980b9;");
+        slider.setMaxWidth(200);
+        return slider;
     }
 
-    private void startSimulation(Slider angleSlider, Slider massSlider, Slider velocitySlider) {
-        if (!isRunning) {
-            // Begin simulation logic here using the sliders' values
-            System.out.println("Simulation Started");
-            isRunning = true;
-            isPaused = false;
-            // Logic to launch the simulation with the current values
-        }
+    private TextField createTextField(String text) {
+        TextField textField = new TextField(text);
+        textField.setMaxWidth(100);
+        return textField;
     }
 
-    private void pauseSimulation() {
-        if (isRunning) {
-            System.out.println("Simulation Paused");
-            isPaused = true;
-            isRunning = false;
-        }
+    private HBox createLabeledInput(String labelText, Control input, Control additionalInput) {
+        Label label = createStyledLabel(labelText);
+        HBox inputRow = new HBox(10, label, input, additionalInput);
+        inputRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        return inputRow;
     }
 
-    private void resumeSimulation() {
-        if (!isRunning && isPaused) {
-            System.out.println("Simulation Resumed");
-            isRunning = true;
-            isPaused = false;
-        }
+    private Button createStyledButton(String text) {
+        Button button = new Button(text);
+        button.setStyle("-fx-font-size: 14px; -fx-padding: 10px; -fx-background-color: #34495e; -fx-text-fill: white;");
+        return button;
     }
 
-    private void resetSimulation(Slider angleSlider, Slider massSlider, Slider velocitySlider) {
-        angleSlider.setValue(45); // Default angle
-        massSlider.setValue(1); // Default mass
-        velocitySlider.setValue(50); // Default velocity
-        System.out.println("Simulation Reset to Defaults");
-        // Additional logic to reset the simulation state
+    private Label createStyledLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
+        return label;
+    }
+
+    private VBox createBackButton() {
+        Button backButton = createStyledButton("Back");
+        backButton.setOnAction(e -> goBackToMainMenu());
+        VBox backButtonBox = new VBox(backButton);
+        backButtonBox.setAlignment(javafx.geometry.Pos.CENTER);
+        return backButtonBox;
+    }
+
+    private void startSimulation(double velocity, double angle, double gravity) {
+        // Your simulation logic here
+        System.out.println("Simulation logic running...");
     }
 
     private void goBackToMainMenu() {
         MainMenu mainMenu = new MainMenu(primaryStage);
-        Scene mainMenuScene = mainMenu.createMainMenuScene();
-        primaryStage.setScene(mainMenuScene); // Set the main menu scene
+        primaryStage.setScene(mainMenu.createMainMenuScene());
+    }
+
+    private double getGravityForPlanet(String planet) {
+        switch (planet) {
+            case "Earth":
+                return 9.8;
+            case "Moon":
+                return 1.6;
+            case "Mars":
+                return 3.7;
+            default:
+                return 9.8; // Default to Earth's gravity
+        }
     }
 }
