@@ -1,0 +1,12 @@
+/* Dark Mode (Greyscale variant) */
+.root {
+    -fx-background-color: #252a33;
+    -fx-text-fill: white;
+}
+
+.button {
+    -fx-background-color: #7f8c8d;
+    -fx-text-fill: #494848;
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+}
