@@ -1,0 +1,37 @@
+/* colorblind.css */
+
+* {
+    font-family: Arial, sans-serif;
+}
+
+.scene {
+    background-color: #f5f5f5;
+    color: black;
+}
+
+.button {
+    -fx-font-size: 16px;
+    -fx-background-color: #ff7f00;
+    -fx-text-fill: white;
+    -fx-border-color: white;
+    -fx-border-width: 2px;
+}
+
+.button:hover {
+    -fx-background-color: #ff4500;
+}
+
+.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: black;
+}
+
+.slider {
+    -fx-accent: #ff7f00;
+}
+
+.text-field {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: black;
+    -fx-border-color: #ff7f00;
+}
