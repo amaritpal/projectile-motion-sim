@@ -25,17 +25,53 @@ public class Simulation {
         visualiserBox.getStyleClass().add("visualiser");
         visualiserBox.setPrefSize(800, 400);
 
-        // Input Values
         Slider velocitySlider = createSlider(0, 100, 0);
         TextField velocityTextField = createTextField("0");
+
+        // Listener for slider changes
         velocitySlider.valueProperty().addListener((obs, oldValue, newValue) -> {
             velocityTextField.setText(String.valueOf(newValue.intValue()));
         });
 
+        // Listener for text field changes
+        velocityTextField.textProperty().addListener((obs, oldValue, newValue) -> {
+            try {
+                double value = Double.parseDouble(newValue);
+                if (value >= 0 && value <= 100) {
+                    velocitySlider.setValue(value);
+                } else {
+                    // If the value is out of range, revert to the slider's current value
+                    velocityTextField.setText(String.valueOf((int) velocitySlider.getValue()));
+                }
+            } catch (NumberFormatException e) {
+                // If the input is not a valid number, revert to the slider's current value
+                velocityTextField.setText(String.valueOf((int) velocitySlider.getValue()));
+            }
+        });
+
+
         Slider angleSlider = createSlider(0, 180, 0);
         TextField angleTextField = createTextField("0");
+
+        // Listener for angle slider changes
         angleSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
             angleTextField.setText(String.valueOf(newValue.intValue()));
+        });
+
+        // Listener for angle text field changes
+        angleTextField.textProperty().addListener((obs, oldValue, newValue) -> {
+            try {
+                double value = Double.parseDouble(newValue);
+                if (value >= 0 && value <= 180) {
+                    angleSlider.setValue(value);
+                } else {
+                    // If the value is out of range, revert to the slider's current value
+                    angleTextField.setText(String.valueOf((int) angleSlider.getValue()));
+                }
+            } catch (NumberFormatException e) {
+                // If the input is not a valid number, revert to the slider's current value
+                angleTextField.setText(String.valueOf((int) angleSlider.getValue()));
+            }
         });
 
         ComboBox<String> gravityDropdown = new ComboBox<>();
@@ -45,7 +81,27 @@ public class Simulation {
         customGravityField.setVisible(false);
 
         gravityDropdown.setOnAction(e -> {
-            customGravityField.setVisible(gravityDropdown.getValue().equals("Custom"));
+            boolean isCustom = gravityDropdown.getValue().equals("Custom");
+            customGravityField.setVisible(isCustom);
+            if (!isCustom) {
+                customGravityField.clear();
+            }
+        });
+
+// Add a listener to the customGravityField
+        customGravityField.textProperty().addListener((obs, oldValue, newValue) -> {
+            if (!newValue.isEmpty()) {
+                try {
+                    double gravity = Double.parseDouble(newValue);
+                    if (gravity <= 0) {
+                        showAlert("Invalid Gravity", "Gravity must be positive. Using Earth's gravity (9.8 m/s²).");
+                        customGravityField.setText("9.8");
+                    }
+                } catch (NumberFormatException ex) {
+                    showAlert("Invalid Input", "Please enter a valid number for gravity. Using Earth's gravity (9.8 m/s²).");
+                    customGravityField.setText("9.8");
+                }
+            }
         });
 
         VBox inputPanel = new VBox(10,
@@ -210,8 +266,8 @@ public class Simulation {
 
     private void resetSimulation(Slider velocitySlider, Slider angleSlider, ComboBox<String> gravityDropdown, TextField customGravityField) {
         // Reset sliders to default values
-        velocitySlider.setValue(50); // Default velocity
-        angleSlider.setValue(45); // Default angle
+        velocitySlider.setValue(0); // Default velocity
+        angleSlider.setValue(0); // Default angle
         gravityDropdown.setValue("Earth"); // Default gravity
         customGravityField.clear(); // Clear custom gravity input field
         System.out.println("Simulation reset to default values!");
