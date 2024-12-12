@@ -103,10 +103,29 @@ public class Simulation {
                 }
             }
         });
+        TextField massTextField = createTextField("0"); // TextField for mass input
+
+// Listener for mass text field changes
+        massTextField.textProperty().addListener((obs, oldValue, newValue) -> {
+            try {
+                double value = Double.parseDouble(newValue);
+                if (value >= 0 && value <= 1000) { // You can adjust the range based on your requirements
+                    // Valid mass value
+                } else {
+                    // If the value is out of range, show an error
+                    showAlert("Invalid Mass", "Mass must be between 0 and 1000 kg.");
+                    massTextField.setText("0"); // Reset to default value
+                }
+            } catch (NumberFormatException e) {
+                // If the input is not a valid number, reset to default
+                massTextField.setText("0");
+            }
+        });
 
         VBox inputPanel = new VBox(10,
                 createLabeledInput("Initial Velocity", velocitySlider, velocityTextField),
                 createLabeledInput("Launch Angle", angleSlider, angleTextField),
+                createLabeledInput("Mass (kg)", massTextField),
                 createLabeledInput("Gravity (Planet)", gravityDropdown, customGravityField)
         );
         inputPanel.getStyleClass().add("vboxPadded");
@@ -124,6 +143,7 @@ public class Simulation {
                 double velocity = velocitySlider.getValue();
                 double angle = angleSlider.getValue();
                 double gravity;
+                double mass = Double.parseDouble(massTextField.getText());
 
                 if (gravityDropdown.getValue().equals("Custom")) {
                     try {
@@ -139,9 +159,10 @@ public class Simulation {
                 System.out.println("Simulation started with:");
                 System.out.println("Velocity: " + velocity + " m/s");
                 System.out.println("Angle: " + angle + " degrees");
+                System.out.println("Mass: " + mass + " kg");
                 System.out.println("Gravity: " + gravity + " m/s²");
 
-                startSimulation(velocity, angle, gravity);
+                startSimulation(velocity, angle, gravity, mass);
             }
         });
 
@@ -164,7 +185,7 @@ public class Simulation {
         });
 
         // Reset Button Logic
-        resetButton.setOnAction(e -> resetSimulation(velocitySlider, angleSlider, gravityDropdown, customGravityField));
+        resetButton.setOnAction(e -> resetSimulation(velocitySlider, angleSlider, gravityDropdown, customGravityField,massTextField));
 
         // Control Panel Layout
         HBox controlPanel = new HBox(10, launchButton, playButton, pauseButton, resetButton);
@@ -219,6 +240,21 @@ public class Simulation {
         return inputRow;
     }
 
+    public HBox createLabeledInput(String label, Control input) {
+        // Check if inputControl is null
+        if (input == null) {
+            throw new IllegalArgumentException("Input control cannot be null!");
+        }
+
+        // Create the HBox layout and add the label and input control
+        HBox hbox = new HBox(10);
+        hbox.getChildren().add(new Label(label));
+        hbox.getChildren().add(input);
+        return hbox;
+    }
+
+
+
     private Button createStyledButton(String text) {
         Button button = new Button(text);
         button.getStyleClass().add("button");
@@ -240,7 +276,7 @@ public class Simulation {
         return backButtonBox;
     }
 
-    private void startSimulation(double velocity, double angle, double gravity) {
+    private void startSimulation(double velocity, double angle, double gravity, double mass) {
         //simulation logic to be added
         System.out.println("Simulation logic running...");
     }
@@ -264,12 +300,13 @@ public class Simulation {
         }
     }
 
-    private void resetSimulation(Slider velocitySlider, Slider angleSlider, ComboBox<String> gravityDropdown, TextField customGravityField) {
+    private void resetSimulation(Slider velocitySlider, Slider angleSlider, ComboBox<String> gravityDropdown, TextField customGravityField, TextField mass) {
         // Reset sliders to default values
         velocitySlider.setValue(0); // Default velocity
         angleSlider.setValue(0); // Default angle
         gravityDropdown.setValue("Earth"); // Default gravity
         customGravityField.clear(); // Clear custom gravity input field
+        mass.clear(); // Clear mass input field
         System.out.println("Simulation reset to default values!");
     }
 
