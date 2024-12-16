@@ -1,0 +1,55 @@
+/* colorblind.css */
+
+* {
+    font-family: Arial, sans-serif;
+}
+
+.visualiser {
+     -fx-background-color: black;
+     -fx-border-color: white;
+     -fx-border-width: 2px;
+ }
+
+.vbox {
+    -fx-background-color: black; /* Background color for VBox */
+}
+
+.hbox {
+    -fx-background-color: black; /* Background color for HBox */
+}
+
+.vboxPadded {
+     -fx-background-color: black;
+     -fx-padding: 10px;
+ }
+
+.hboxPadded {
+    -fx-background-color: black;
+    -fx-padding: 10px;
+}
+
+.button {
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-background-color: #ff7f00;
+    -fx-text-fill: white;
+}
+
+.button:hover {
+    -fx-background-color: #ff4500;
+}
+
+.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.slider {
+    -fx-accent: #ff7f00;
+}
+
+.text-field {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: black;
+    -fx-border-color: #ff7f00;
+}

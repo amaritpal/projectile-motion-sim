@@ -1,0 +1,8 @@
+module-info.class
+amarit\motionsim\HelloApplication.class
+ui\Credits.class
+ui\Simulation.class
+ui\MainMenu.class
+ui\ButtonStyling.class
+ui\Settings.class
+ui\ThemeManager.class
