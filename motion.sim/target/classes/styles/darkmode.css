@@ -1,0 +1,55 @@
+/* darkmode.css */
+
+* {
+    font-family: Arial, sans-serif;
+}
+
+.visualiser {
+    -fx-background-color: #1c1c1c;
+    -fx-padding: 10;
+    -fx-spacing: 0;
+}
+
+.vbox {
+    -fx-background-color: #1c1c1c; /* Background color for VBox */
+}
+
+.hbox {
+    -fx-background-color: #1c1c1c; /* Background color for HBox */
+}
+
+.vboxPadded {
+    -fx-background-color: #1c1c1c;
+    -fx-padding: 10px;
+}
+
+.hboxPadded {
+    -fx-background-color: #1c1c1c;
+    -fx-padding: 10px;
+}
+
+.button {
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+}
+
+.button:hover {
+    -fx-background-color: #4f4f4f;
+}
+
+.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.slider {
+    -fx-accent: #444444;
+}
+
+.text-field {
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+    -fx-border-color: #444444;
+}
